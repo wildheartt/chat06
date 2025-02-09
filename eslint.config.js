@@ -8,14 +8,15 @@ export default [
   pluginJs.configs.recommended,
   importPlugin.flatConfigs.recommended,
   {
-    ignores: ['node_modules/', 'dist/', 'coverage/'],
+    ignores: ['node_modules/', 'dist/', 'coverage/', 'types/'],
   },
 
   {
-    files: ['**/*.{js,mjs,cjs,ts,tsx}'],
+    files: ['**/*.{js,mjs,cjs,jsx,ts,tsx}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
+      parserOptions: {},
       globals: {
         ...globals.browser,
       },
@@ -31,12 +32,7 @@ export default [
   },
 
   {
-    files: [
-      'jest.config.cjs',
-      'webpack.config.cjs',
-      'babel.config.js',
-      'eslint.config.js',
-    ],
+    files: ['.babelrc'],
     languageOptions: {
       sourceType: 'script',
       globals: {
