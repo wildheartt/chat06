@@ -7,7 +7,7 @@ const db = admin.firestore();
 
 exports.detectEvilUsers = functions.firestore
   .document('messages/{msgId}')
-  .onCreate(async (doc, ctx) => {
+  .onCreate(async (doc) => {
     const filter = new Filter();
     const { text, uid } = doc.data();
 

@@ -1,38 +1,50 @@
 import React, { useRef, useState } from 'react';
-import './App.css';
+import './app.css';
 
-import firebase from 'firebase/app';
-import 'firebase/firestore';
-import 'firebase/auth';
-import 'firebase/analytics';
+import { initializeApp } from 'firebase/app';
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  limit,
+  serverTimestamp,
+} from 'firebase/firestore';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+} from 'firebase/auth';
+import { getAnalytics } from 'firebase/analytics';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 
-firebase.initializeApp({
+const firebaseConfig = {
   apiKey: 'AIzaSyDYPTm3wcEtMRoydTMy-XgNx5KojVoPgbw',
   authDomain: 'chat-cc6fc.firebaseapp.com',
   projectId: 'chat-cc6fc',
   storageBucket: 'chat-cc6fc.firebasestorage.app',
   messagingSenderId: '224147244391',
   appId: '1:224147244391:web:525b1f6c4f2ad9ab889bc2',
-});
+};
 
-const auth = firebase.auth();
-const firestore = firebase.firestore();
-const analytics = firebase.analytics();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const firestore = getFirestore(app);
+const analytics = getAnalytics(app);
 
 function App() {
   const [user] = useAuthState(auth);
 
   return (
-    <div className="App">npm start
-
+    <div className="App">
       <header>
         <h1>⚛️🔥💬</h1>
         <SignOut />
       </header>
-
       <section>{user ? <ChatRoom /> : <SignIn />}</section>
     </div>
   );
@@ -40,17 +52,17 @@ function App() {
 
 function SignIn() {
   const signInWithGoogle = () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider);
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider);
   };
 
   return (
     <>
       <button className="sign-in" onClick={signInWithGoogle}>
-        Sign in with Google
+        Зарегестрироваться с Google
       </button>
       <p>
-        Do not violate the community guidelines or you will be banned for life!
+        Не нарушайте правила сообщества, иначе вы будете заблокированы навсегда!
       </p>
     </>
   );
@@ -59,8 +71,8 @@ function SignIn() {
 function SignOut() {
   return (
     auth.currentUser && (
-      <button className="sign-out" onClick={() => auth.signOut()}>
-        Sign Out
+      <button className="sign-out" onClick={() => signOut(auth)}>
+        Выйти из аккаунта
       </button>
     )
   );
@@ -68,10 +80,10 @@ function SignOut() {
 
 function ChatRoom() {
   const dummy = useRef();
-  const messagesRef = firestore.collection('messages');
-  const query = messagesRef.orderBy('createdAt').limit(25);
+  const messagesRef = collection(firestore, 'messages');
+  const q = query(messagesRef, orderBy('createdAt'), limit(25));
 
-  const [messages] = useCollectionData(query, { idField: 'id' });
+  const [messages] = useCollectionData(q, { idField: 'id' });
 
   const [formValue, setFormValue] = useState('');
 
@@ -80,9 +92,9 @@ function ChatRoom() {
 
     const { uid, photoURL } = auth.currentUser;
 
-    await messagesRef.add({
+    await addDoc(messagesRef, {
       text: formValue,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdAt: serverTimestamp(),
       uid,
       photoURL,
     });
@@ -127,6 +139,7 @@ function ChatMessage(props) {
           src={
             photoURL || 'https://api.adorable.io/avatars/23/abott@adorable.png'
           }
+          alt="avatar"
         />
         <p>{text}</p>
       </div>

@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Правила для коллекции messages
+    match /messages/{messageId} {
+      // Разрешить чтение всем авторизованным пользователям
+      allow read: if request.auth != null;
+      
+      // Разрешить создание сообщений только авторизованным пользователям
+      allow create: if request.auth != null 
+        && request.auth.uid == request.resource.data.uid;
+      
+      // Запретить изменение и удаление сообщений
+      allow update, delete: if false;
+    }
+  }
+} 
