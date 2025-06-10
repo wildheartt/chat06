@@ -3,15 +3,6 @@ import './app.css';
 
 import { initializeApp } from 'firebase/app';
 import {
-  getFirestore,
-  collection,
-  addDoc,
-  query,
-  orderBy,
-  limit,
-  serverTimestamp,
-} from 'firebase/firestore';
-import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
@@ -20,7 +11,9 @@ import {
 import { getAnalytics } from 'firebase/analytics';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { useCollectionData } from 'react-firebase-hooks/firestore';
+import { StorageProvider } from './context/StorageContext';
+import StorageSwitch from './components/StorageSwitch';
+import { useMessages } from './hooks/useMessages';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDYPTm3wcEtMRoydTMy-XgNx5KojVoPgbw',
@@ -33,20 +26,24 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const firestore = getFirestore(app);
 const analytics = getAnalytics(app);
 
 function App() {
   const [user] = useAuthState(auth);
 
   return (
-    <div className="App">
-      <header>
-        <h1>⚛️🔥💬</h1>
-        <SignOut />
-      </header>
-      <section>{user ? <ChatRoom /> : <SignIn />}</section>
-    </div>
+    <StorageProvider>
+      <div className="App">
+        <header>
+          <h1>⚛️🔥💬</h1>
+          <div className="header-controls">
+            {user && <StorageSwitch />}
+            <SignOut />
+          </div>
+        </header>
+        <section>{user ? <ChatRoom /> : <SignIn />}</section>
+      </div>
+    </StorageProvider>
   );
 }
 
@@ -80,11 +77,7 @@ function SignOut() {
 
 function ChatRoom() {
   const dummy = useRef();
-  const messagesRef = collection(firestore, 'messages');
-  const q = query(messagesRef, orderBy('createdAt'), limit(25));
-
-  const [messages] = useCollectionData(q, { idField: 'id' });
-
+  const { messages, loading, sendMessage: sendMsg } = useMessages(25);
   const [formValue, setFormValue] = useState('');
 
   const sendMessage = async (e) => {
@@ -92,20 +85,24 @@ function ChatRoom() {
 
     const { uid, photoURL } = auth.currentUser;
 
-    await addDoc(messagesRef, {
-      text: formValue,
-      createdAt: serverTimestamp(),
-      uid,
-      photoURL,
-    });
+    try {
+      await sendMsg({
+        text: formValue,
+        uid,
+        photoURL,
+      });
 
-    setFormValue('');
-    dummy.current.scrollIntoView({ behavior: 'smooth' });
+      setFormValue('');
+      dummy.current.scrollIntoView({ behavior: 'smooth' });
+    } catch (error) {
+      console.error('Ошибка при отправке сообщения:', error);
+    }
   };
 
   return (
     <>
       <main>
+        {loading && <div className="loading">Загрузка сообщений...</div>}
         {messages &&
           messages.map((msg) => <ChatMessage key={msg.id} message={msg} />)}
 
@@ -116,7 +113,7 @@ function ChatRoom() {
         <input
           value={formValue}
           onChange={(e) => setFormValue(e.target.value)}
-          placeholder="say something nice"
+          placeholder="Напишите что-нибудь приятное"
         />
 
         <button type="submit" disabled={!formValue}>

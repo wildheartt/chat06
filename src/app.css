@@ -147,3 +147,47 @@ img {
   border-radius: 50%;
   margin: 2px 5px;
 }
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.storage-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.storage-switch label {
+  color: white;
+  white-space: nowrap;
+}
+
+.storage-select {
+  padding: 4px 8px;
+  background-color: #404040;
+  color: white;
+  border: 1px solid #666;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.storage-select:focus {
+  outline: none;
+  border-color: #6649b8;
+}
+
+.storage-indicator {
+  color: #aaa;
+  font-size: 0.75rem;
+}
+
+.loading {
+  text-align: center;
+  color: #aaa;
+  padding: 20px;
+  font-style: italic;
+}
